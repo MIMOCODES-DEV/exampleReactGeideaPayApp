@@ -10,6 +10,8 @@ import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeScreen from './HomeScreen';
+import CheckoutFlow from './CheckoutFlow';
+import ApiFlow from './ApiFlow';
 import ThreeDSScreen from 'react_geideapay/components/ThreeDSScreen.js';
 import CheckoutScreen from 'react_geideapay/components/CheckoutScreen';
 
@@ -22,7 +24,35 @@ const App = () => {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{title: 'Geidea Example'}}
+          options={{
+            title: 'Geidea Example',
+            headerStyle: {
+              backgroundColor: '#ff4500',
+            },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="CheckoutFlow"
+          component={CheckoutFlow}
+          options={{
+            title: 'Checkout Flow',
+            headerStyle: {
+              backgroundColor: '#ff4500',
+            },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="ApiFlow"
+          component={ApiFlow}
+          options={{
+            title: 'API Flow',
+            headerStyle: {
+              backgroundColor: '#ff4500',
+            },
+            headerTintColor: '#fff',
+          }}
         />
         <Stack.Screen
           name="Browser"
@@ -32,7 +62,13 @@ const App = () => {
         <Stack.Screen
           name="CheckoutScreen"
           component={CheckoutScreen}
-          options={({route}) => ({title: route.params.screenTitle})}
+          options={({route}) => ({
+            title: route.params.screenTitle,
+            headerStyle: {
+              backgroundColor: '#ff4500',
+            },
+            headerTintColor: '#fff'
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>
