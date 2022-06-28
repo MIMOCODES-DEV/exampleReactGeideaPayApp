@@ -69,15 +69,8 @@ class HomeScreen extends Component {
       showShipping: false,
       //language
       lang: 'English',
-      //Billing and shipping address components
-      bCountry: '',
-      sCountry: '',
-      bStreet: '',
-      sStreet: '',
-      bCity: '',
-      sCity: '',
-      bPostal: '',
-      sPostal: '',
+      billingAddress: new Address(),
+      shippingAddress: new Address(),
     };
 
     this.onModalCheckoutButtonPress =
@@ -87,6 +80,8 @@ class HomeScreen extends Component {
     this.onPaymentFailure = this.onPaymentFailure.bind(this);
     this.onScreenCheckoutButtonPress =
       this.onScreenCheckoutButtonPress.bind(this);
+    this.handlePaymentDetails = this.handlePaymentDetails.bind(this);
+    this.onAddressChange = this.onAddressChange.bind(this);
   }
   componentDidUpdate(prevProps) {
     // console.log('this.props.route.params');
@@ -121,6 +116,15 @@ class HomeScreen extends Component {
   componentDidMount() {
     this.setState({orderId: null});
   }
+
+  onAddressChange(key, isBilling, value) {
+    if (isBilling) {
+      this.state.billingAddress[key] = value;
+    } else {
+      this.state.shippingAddress[key] = value;
+    }
+  }
+
   handlePaymentDetails(key, value) {
     this.setState({[key]: value});
   }
@@ -134,23 +138,9 @@ class HomeScreen extends Component {
 
   onScreenCheckoutButtonPress() {
     console.log(this.state);
-    const {amount, currency, callbackUrl} = this.state;
+    const {amount, currency, callbackUrl, billingAddress, shippingAddress} =
+      this.state;
     const {publicKey, apiPassword} = this.props.route.params;
-
-    var billingAddress = new Address({
-      countryCode: this.state.bCountry,
-      street: this.state.bStreet,
-      city: this.state.bCity,
-      postCode: this.state.bPostal,
-    });
-
-    var shippingAddress = new Address({
-      countryCode: this.state.sCountry,
-      street: this.state.sStreet,
-      city: this.state.sCity,
-      postCode: this.state.sPostal,
-    });
-
     this.props.navigation.push('CheckoutScreen', {
       amount: Number(amount),
       screenTitle: 'Checkout',
@@ -202,7 +192,15 @@ class HomeScreen extends Component {
   }
 
   renderPaymentModal() {
-    const {checkoutVisible, amount, currency, callbackUrl} = this.state;
+    console.log(this.state);
+    const {
+      checkoutVisible,
+      amount,
+      currency,
+      callbackUrl,
+      billingAddress,
+      shippingAddress,
+    } = this.state;
     const {publicKey, apiPassword} = this.props.route.params;
     return (
       <PaymentModal
@@ -218,6 +216,13 @@ class HomeScreen extends Component {
         apiPassword={apiPassword}
         onPaymentSuccess={this.onPaymentSuccess}
         onPaymentFailure={this.onPaymentFailure}
+        billingAddress={billingAddress}
+        shippingAddress={shippingAddress}
+        paymentOperation={
+          this.state.paymentOperation === 'Default (merchant configuration)'
+            ? null
+            : this.state.paymentOperation
+        }
       />
     );
   }
@@ -230,6 +235,19 @@ class HomeScreen extends Component {
         mode="outlined"
         dense={true}
         onChangeText={this.handlePaymentDetails.bind(this, varName)}
+        defaultValue={defaultValue}
+      />
+    );
+  }
+
+  renderAddressTextInputRow(label, varName, defaultValue, isBilling) {
+    return (
+      <TextInput
+        label={label}
+        style={styles.TextInputRow}
+        mode="outlined"
+        dense={true}
+        onChangeText={this.onAddressChange.bind(this, varName, isBilling)}
         defaultValue={defaultValue}
       />
     );
@@ -285,15 +303,21 @@ class HomeScreen extends Component {
   renderBillingAddressDetails(isBilling) {
     return (
       <View>
-        {this.renderTextInputRow(
+        {this.renderAddressTextInputRow(
           'Country Code',
-          isBilling ? 'bCountry' : 'sCountry',
-          isBilling ? this.state.bCountry : this.state.sCountry,
+          '_countryCode',
+          isBilling
+            ? this.state.billingAddress._countryCode
+            : this.state.shippingAddress._countryCode,
+          isBilling,
         )}
-        {this.renderTextInputRow(
+        {this.renderAddressTextInputRow(
           'Street name & number',
-          isBilling ? 'bStreet' : 'sStreet',
-          isBilling ? this.state.bStreet : this.state.sStreet,
+          '_street',
+          isBilling
+            ? this.state.billingAddress._street
+            : this.state.shippingAddress._street,
+          isBilling,
         )}
         <View
           style={[
@@ -308,22 +332,28 @@ class HomeScreen extends Component {
             style={{flex: 3, marginRight: 10, backgroundColor: '#fff'}}
             mode="outlined"
             dense={true}
-            onChangeText={this.handlePaymentDetails.bind(
-              this,
-              isBilling ? 'bCity' : 'sCity',
-            )}
-            defaultValue={isBilling ? this.state.bCity : this.state.sCity}
+            onChangeText={this.onAddressChange.bind(this, '_city', isBilling)}
+            defaultValue={
+              isBilling
+                ? this.state.billingAddress._city
+                : this.state.shippingAddress._city
+            }
           />
           <TextInput
             label="Postal"
             style={{flex: 3, backgroundColor: '#fff'}}
             mode="outlined"
             dense={true}
-            onChangeText={this.handlePaymentDetails.bind(
+            onChangeText={this.onAddressChange.bind(
               this,
-              isBilling ? 'bPostal' : 'sPostal',
+              '_postCode',
+              isBilling,
             )}
-            defaultValue={isBilling ? this.state.bPostal : this.state.sPostal}
+            defaultValue={
+              isBilling
+                ? this.state.billingAddress._postCode
+                : this.state.shippingAddress._postCode
+            }
           />
         </View>
       </View>
